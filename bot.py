@@ -21,20 +21,62 @@ async def start_massage(massage):
     stat_ua = types.InlineKeyboardButton(text="🇺🇦 Статистика в Україні")
     stat_world = types.InlineKeyboardButton(text="🌎 Світова статистика")
     keyboard.add(stat_ua, stat_world)
-
-    await bot.send_message(massage.chat.id, 'Вітаємо. У цьому боті ви зможете побачити актуальну '
+    img = open('baner.jpg', 'rb')
+    await bot.send_photo(massage.chat.id, img, caption='Вітаємо. У цьому боті ви зможете побачити актуальну '
                                       'статистику захворювань на COVID-19 🦠\n\n'
-                                      'Для взаємодії з ботом використовуй команди:\n\n'
+                                      'Для взаємодії з ботом використовуйте команди:\n\n'
                                       '/search_country - Пошук країни '
                                       '(введіть назву країни латиницею, або візьміть зі списку. Приклад: Ukraine)\n'
                                       '/list_country - Список доступних країн\n'
                                       '/world_statistic - Загальна світова статистика', reply_markup=keyboard)
+    #
+    # await bot.send_message(massage.chat.id, 'Вітаємо. У цьому боті ви зможете побачити актуальну '
+    #                                   'статистику захворювань на COVID-19 🦠\n\n'
+    #                                   'Для взаємодії з ботом використовуй команди:\n\n'
+    #                                   '/search_country - Пошук країни '
+    #                                   '(введіть назву країни латиницею, або візьміть зі списку. Приклад: Ukraine)\n'
+    #                                   '/list_country - Список доступних країн\n'
+    #                                   '/world_statistic - Загальна світова статистика', reply_markup=keyboard)
 
 
 @dp.message_handler(commands=['search_country'])
 async def hello(massage):
     await bot.send_message(massage.chat.id, 'Введіть назву країни.\n'
                                       'Наприклад: USA, Ukraine, Italy...')
+
+
+@dp.message_handler(commands=['list_country'])
+async def list_country(massage):
+    try:
+        await bot.send_message(massage.chat.id, 'Зачекайте будь ласка. Запит опрацьовується...')
+        corona = requests.get(URL_API_COUNTRIES, headers=HEADERS)
+        i = 0
+        all_country = []
+        while i < len(corona.json()):
+            c = corona.json()[i]["country"]
+            i = i + 1
+            all_country.append(c)
+
+        await bot.send_message(massage.chat.id, f'{all_country}\n')
+    except:
+        await bot.send_message(massage.chat.id, 'Сталася помилка... Попробуйте пізніше.')
+
+
+@dp.message_handler(commands=['world_statistic'])
+async def all_deaths(massage):
+    try:
+        r_total = requests.get(URL_API_TOTAL, headers=HEADERS)
+        total_cases = r_total.json()["cases"]
+        total_deaths = r_total.json()["deaths"]
+        total_recovered = r_total.json()["recovered"]
+
+        await bot.send_message(massage.chat.id, f'Загальна світова статистика!\n'
+                                          f'-----------\n'
+                                          f'Зафіксованих випадків : {total_cases}\n'
+                                          f'Одужавших : {total_recovered}\n'
+                                          f'Летальних випадків : {total_deaths}\n')
+    except:
+        await bot.send_message(massage.chat.id, 'Вибачте, сталася помилка! Попробуйте пізніше!')
 
 
 @dp.message_handler()
@@ -91,40 +133,6 @@ async def stat_country(massage):
             f'За останню добу зафіксовано {today_cases} випадків та {today_deaths} смертей')
         except:
             await bot.send_message(massage.chat.id, f'Країни не знайдено. Спробуйте ще раз!')
-
-
-@dp.message_handler(commands=['world_statistic'])
-async def all_deaths(massage):
-    try:
-        r_total = requests.get(URL_API_TOTAL, headers=HEADERS)
-        total_cases = r_total.json()["cases"]
-        total_deaths = r_total.json()["deaths"]
-        total_recovered = r_total.json()["recovered"]
-
-        await bot.send_message(massage.chat.id, f'Загальна світова статистика!\n'
-                                          f'-----------\n'
-                                          f'Зафіксованих випадків : {total_cases}\n'
-                                          f'Одужавших : {total_recovered}\n'
-                                          f'Летальних випадків : {total_deaths}\n')
-    except:
-        await bot.send_message(massage.chat.id, 'Вибачте, сталася помилка! Попробуйте пізніше!')
-
-
-@dp.message_handler(commands=['list_country'])
-async def list_country(massage):
-    try:
-        await bot.send_message(massage.chat.id, 'Зачекайте будь ласка. Запит опрацьовується...')
-        corona = requests.get(URL_API_COUNTRIES, headers=HEADERS)
-        i = 0
-        all_country = []
-        while i < len(corona.json()):
-            c = corona.json()[i]["country"]
-            i = i + 1
-            all_country.append(c)
-
-        await bot.send_message(massage.chat.id, f'{all_country}\n')
-    except:
-        await bot.send_message(massage.chat.id, 'Сталася помилка... Попробуйте пізніше.')
 
 
 if __name__ == "__main__":
