@@ -1,0 +1,14 @@
+[Unit]
+Description=Telegram Bot
+After=network.target
+
+[Service]
+User=root
+Group=root
+
+WorkingDirectory=/root/projects/TelegramBot_Covid19_info
+Environment="PYTHONPATH=/root/projects/TelegramBot_Covid19_info"
+ExecStart=/root/projects/TelegramBot_Covid19_info/.venv/bin/python /root/projects/TelegramBot_Covid19_info/bot.py
+
+[Install]
+WantedBy=multi-user.target
